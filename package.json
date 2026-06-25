@@ -1,0 +1,26 @@
+{
+  "name": "agent-rules",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "release": "standard-version",
+    "release:dry": "standard-version --dry-run",
+    "release:major": "standard-version --release-as major",
+    "release:minor": "standard-version --release-as minor",
+    "release:patch": "standard-version --release-as patch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.33.2",
+  "devDependencies": {
+    "standard-version": "^9.5.0"
+  },
+  "standard-version": {
+    "scripts": {
+      "postbump": "echo \"Version bumped to $npm_package_version\""
+    }
+  }
+}
