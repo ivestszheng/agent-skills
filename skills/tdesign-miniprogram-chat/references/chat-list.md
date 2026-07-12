@@ -1,0 +1,135 @@
+# ChatList 对话列表
+
+对话消息列表容器组件，负责管理消息的渲染和滚动行为。
+
+## 引入
+
+```json
+{
+  "usingComponents": {
+    "t-chat": "tdesign-miniprogram/chat-list/chat-list"
+  }
+}
+```
+
+## 核心用法
+
+```xml
+<view class="chat-box" style="height: {{contentHeight}};">
+  <t-chat id="chatList" bindscroll="onScroll">
+    <block wx:for="{{chatList}}" wx:key="chatId">
+      <t-chat-message
+        chat-id="{{item.chatId}}"
+        avatar="{{item.avatar || ''}}"
+        name="{{item.name || ''}}"
+        datetime="{{item.datetime || ''}}"
+        content="{{item.content}}"
+        role="{{item.role}}"
+        placement="{{item.role === 'user' ? 'right' : 'left'}}"
+        status="{{item.status || ''}}"
+        bind:message-longpress="showPopover"
+        bind:click="onClick"
+      >
+        <t-chat-actionbar
+          wx:if="{{index !== chatList.length - 1 && item.status === 'complete' && item.role === 'assistant'}}"
+          id="{{'actionbar-'+item.chatId}}"
+          chat-id="{{item.chatId}}"
+          comment="{{item.comment}}"
+          slot="actionbar"
+          placement="end"
+          bind:actions="handleAction"
+        />
+      </t-chat-message>
+    </block>
+    <view slot="footer">
+      <t-chat-sender
+        value="{{value}}"
+        loading="{{loading}}"
+        disabled="{{disabled}}"
+        autoRiseWithKeyboard="{{true}}"
+        renderPresets="{{renderPresets}}"
+        bind:send="onSend"
+        bind:stop="onStop"
+        bind:focus="onFocus"
+      />
+    </view>
+  </t-chat>
+</view>
+```
+
+## 核心 API
+
+### 滚动到底部
+
+```javascript
+scrollToBottom() {
+  const chatListComponent = this.selectComponent('#chatList');
+  if (chatListComponent && typeof chatListComponent.scrollToBottom === 'function') {
+    chatListComponent.scrollToBottom();
+  }
+}
+```
+
+### 事件
+
+| 事件名 | 说明 |
+|--------|------|
+| `bindscroll` | 列表滚动时触发 |
+
+### 虚拟列表优化
+
+组件内置虚拟列表优化性能，仅在 `data` 属性中使用时生效：
+
+```xml
+<!-- 内置虚拟列表优化（data 属性方式） -->
+<t-chat id="chatList" data="{{chatList}}" />
+```
+
+> 注意：使用 `data` 属性时，组件会自动使用虚拟列表，不再需要手动 `wx:for`。适合大量消息场景。
+
+## 完整页面示例
+
+```javascript
+import Toast from 'tdesign-miniprogram/toast';
+
+Component({
+  options: {
+    styleIsolation: 'shared',
+  },
+  data: {
+    chatList: [],
+    value: '',
+    loading: false,
+    disabled: false,
+    contentHeight: '100vh',
+  },
+  methods: {
+    onSend(e) {
+      const { value } = e.detail;
+      if (!value || value.trim() === '') return;
+
+      const userMessage = {
+        role: 'user',
+        content: [{ type: 'text', data: value.trim() }],
+        chatId: getUniqueKey(),
+      };
+
+      this.setData({
+        chatList: [userMessage, ...this.data.chatList],
+        value: '',
+      });
+
+      // 发起请求并创建助手消息...
+    },
+    onStop() {
+      this.setData({ loading: false });
+    },
+    scrollToBottom() {
+      const chatListComponent = this.selectComponent('#chatList');
+      if (chatListComponent && typeof chatListComponent.scrollToBottom === 'function') {
+        chatListComponent.scrollToBottom();
+      }
+    },
+  },
+});
+```
