@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.5](https://github.com/ivestszheng/agent-skills/compare/v0.0.4...v0.0.5) (2026-07-12)
+
+
+### Chores
+
+* release version 0.0.4 ([341750c](https://github.com/ivestszheng/agent-skills/commit/341750c6c1cb74fc0863b3a232ca7aaa2d423f53))
+* 将项目名称从 agent-rules 更新为 agent-skills ([5601e9f](https://github.com/ivestszheng/agent-skills/commit/5601e9f1770af14302fbf09d58f7c3ed5d357b2d))
+
 ### [0.0.4](https://github.com/ivestszheng/agent-rules/compare/v0.0.3...v0.0.4) (2026-07-12)
 
 
