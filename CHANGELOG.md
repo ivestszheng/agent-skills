@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.4](https://github.com/ivestszheng/agent-rules/compare/v0.0.3...v0.0.4) (2026-07-12)
+
+
+### Chores
+
+* 修复 standard-version 配置，完善 CHANGELOG 内容 ([f960746](https://github.com/ivestszheng/agent-rules/commit/f960746b1d40809695186b3b0aeec498b290346e))
+
 ## 0.0.3 (2026-07-12)
 
 
