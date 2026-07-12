@@ -1,4 +1,4 @@
-# Agent Rules - agent-rules 项目
+# Agent Skills - agent-skills 项目
 
 ## 版本管理
 

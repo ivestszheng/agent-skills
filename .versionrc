@@ -8,7 +8,7 @@
     {"type": "test", "section": "Tests", "hidden": false},
     {"type": "chore", "section": "Chores", "hidden": false}
   ],
-  "commitUrlFormat": "https://github.com/ivestszheng/agent-rules/commit/{{hash}}",
-  "compareUrlFormat": "https://github.com/ivestszheng/agent-rules/compare/{{previousTag}}...{{currentTag}}",
-  "issueUrlFormat": "https://github.com/ivestszheng/agent-rules/issues/{{id}}"
+  "commitUrlFormat": "https://github.com/ivestszheng/agent-skills/commit/{{hash}}",
+  "compareUrlFormat": "https://github.com/ivestszheng/agent-skills/compare/{{previousTag}}...{{currentTag}}",
+  "issueUrlFormat": "https://github.com/ivestszheng/agent-skills/issues/{{id}}"
 }
