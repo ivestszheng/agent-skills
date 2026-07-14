@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.6](https://github.com/ivestszheng/agent-skills/compare/v0.0.5...v0.0.6) (2026-07-13)
+
+
+### Features
+
+* 新增 tdesign-miniprogram 的 skill ([91840cd](https://github.com/ivestszheng/agent-skills/commit/91840cdf1b583e65959cc1b6072719ffa0a518b6))
+
 ### [0.0.5](https://github.com/ivestszheng/agent-skills/compare/v0.0.4...v0.0.5) (2026-07-12)
 
 
