@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.7](https://github.com/ivestszheng/agent-skills/compare/v0.0.6...v0.0.7) (2026-07-14)
+
+
+### Chores
+
+* 添加git提交信息相关规则文件 ([b38a854](https://github.com/ivestszheng/agent-skills/commit/b38a854fcbb21cfa9d07b86f981a1e2db6449179))
+
 ### [0.0.6](https://github.com/ivestszheng/agent-skills/compare/v0.0.5...v0.0.6) (2026-07-13)
 
 
