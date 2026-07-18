@@ -86,3 +86,14 @@
 ## 布局方式
 
 通过 `layout` 属性设置思考过程的展示布局，支持不同的视觉风格。
+
+## 完整业务示例
+
+实际业务场景的完整页面示例（含 wxml / js / css / json 四件套）已放在 `examples/` 目录，可直接作为页面模板参考：
+
+| 示例 | 场景说明 | 关键特性 |
+|------|----------|----------|
+| [组件类型](../examples/chat-thinking-example-type.md) | 打字机效果 + 动效 | 组件类型, 打字机效果, 动效类型, collapsed控制 |
+| [思考中](../examples/chat-thinking-example-status-pending.md) | 思考中状态 | 思考中状态, status:pending, 加载动效 |
+| [思考完成](../examples/chat-thinking-example-status-complete.md) | 思考完成状态 | 思考完成状态, status:complete, 面板收起 |
+| [组件样式](../examples/chat-thinking-example-layout-and-content.md) | 布局与插槽 | layout布局, block/border样式, content插槽自定义 |

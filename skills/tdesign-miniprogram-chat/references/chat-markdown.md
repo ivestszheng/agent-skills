@@ -1,3 +1,7 @@
+<!--
+  文件名: chat-markdown.md
+  官方文档：https://tdesign.tencent.com/miniprogram-chat/components/chat-markdown
+ -->
 # ChatMarkdown Markdown 渲染
 
 在聊天场景中渲染 Markdown 内容的组件，支持标题、列表、代码块、表格、图片、超链接、引用，以及流式输出光标。
@@ -149,3 +153,41 @@ const LoginForm = () => {
 ```xml
 <t-chat-markdown content="{{content}}" bind:click="handleNodeTap" />
 ```
+
+## FAQ
+
+MarkdownNode 数据结构由 marked 解析器生成，不同节点类型包含不同字段，常见结构如下：
+
+
+| type 值 | 说明 | 主要字段 |
+| :--- | :--- | :--- |
+| `heading` | 标题 | `type`, `raw`, `depth` (1-6), `text`, `tokens` (子节点) |
+| `paragraph` | 段落 | `type`, `raw`, `text`, `tokens` (子节点) |
+| `text` | 文本 | `type`, `raw`, `text`, `tokens` (子节点, 可选) |
+| `strong` | 加粗 | `type`, `raw`, `text`, `tokens` (子节点) |
+| `em` | 斜体 | `type`, `raw`, `text`, `tokens` (子节点) |
+| `del` | 删除线 | `type`, `raw`, `text`, `tokens` (子节点) |
+| `link` | 链接 | `type`, `raw`, `text`, `href`, `title`, `tokens` (子节点) |
+| `image` | 图片 | `type`, `raw`, `text`, `href`, `title` |
+| `list` | 列表 | `type`, `raw`, `ordered` (是否有序), `items` (列表项数组) |
+| `blockquote` | 引用块 | `type`, `raw`, `text`, `tokens` (子节点) |
+| `code` | 代码块 | `type`, `raw`, `text` (代码内容), `lang` (语言) |
+| `codespan` | 行内代码 | `type`, `raw`, `text` |
+| `table` | 表格 | `type`, `raw`, `header` (表头数组), `rows` (行数组), `align` (对齐方式) |
+
+
+> 注：table 和 code 节点点击时，node 为整个节点对象（含完整表格/代码数据）；其余节点点击时，node 为对应的 marked token 对象。
+
+## 完整业务示例
+
+实际业务场景的完整页面示例（含 wxml / js / css / json 四件套）已放在 `examples/` 目录，可直接作为页面模板参考：
+
+| 示例 | 场景说明 | 关键特性 |
+|------|----------|----------|
+| [标题与文本](../examples/chat-markdown-example-title-and-text.md) | 基础文本样式 | 标题渲染, 加粗/删除线, 行内代码, 基础文本样式 |
+| [列表](../examples/chat-markdown-example-list.md) | 有序/无序列表 | 无序列表, 有序列表, 嵌套列表 |
+| [代码块](../examples/chat-markdown-example-code.md) | 代码语法高亮 | 代码块渲染, 语法高亮, marked解析 |
+| [表格](../examples/chat-markdown-example-table.md) | 表格对齐渲染 | 表格渲染, 对齐方式, 左/中/右对齐 |
+| [图片与链接](../examples/chat-markdown-example-img-and-link.md) | 图片与超链接 | 图片渲染, 超链接, 图片预览, click事件 |
+| [引用](../examples/chat-markdown-example-quote.md) | 引用块渲染 | 引用块渲染, blockquote样式 |
+| [流式输出光标](../examples/chat-markdown-example-streaming-output-cursor.md) | 流式光标动画 | 流式输出光标, streaming属性, generic:tail-component, 自定义尾部 |

@@ -119,3 +119,14 @@ data: {
 ```javascript
 { fileType: 'image', name: 'uploading.jpg', url: '...', size: 1024, status: 'pending' }
 ```
+
+## 完整业务示例
+
+实际业务场景的完整页面示例（含 wxml / js / css / json 四件套）已放在 `examples/` 目录，可直接作为页面模板参考：
+
+| 示例 | 场景说明 | 关键特性 |
+|------|----------|----------|
+| [图片类型](../examples/attachments-example-img.md) | 图片附件展示 | 图片附件, fileClick/remove/add事件, 图片预览 |
+| [图片类型加载状态](../examples/attachments-example-img-loading.md) | 图片上传中 | 图片加载状态, status:pending, 图片类型附件 |
+| [文件类型](../examples/attachments-example-file.md) | 多种文件类型 | 文件类型, doc/excel/pdf/ppt/video, 文件图标 |
+| [文件类型加载状态](../examples/attachments-example-file-loading.md) | 文件上传中 | 文件加载状态, status:pending, 文件类型附件 |
