@@ -84,3 +84,12 @@ Component({
   },
 });
 ```
+
+## 完整业务示例
+
+实际业务场景的完整页面示例（含 wxml / js / css / json 四件套）已放在 `examples/` 目录，可直接作为页面模板参考：
+
+| 示例 | 场景说明 | 关键特性 |
+|------|----------|----------|
+| [动画样式](../examples/chat-loading-example-animation.md) | 多种动效切换 | 动画样式, gradient/moving/dots, 动效切换 |
+| [带文案描述的加载组件](../examples/chat-loading-example-text.md) | 加载文案展示 | 加载文案, text属性, dots动画 |

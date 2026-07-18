@@ -114,3 +114,11 @@ greet('Markdown');
 这是一个链接 [TDesign](https://tdesign.tencent.com)。
 `;
 ```
+
+## 完整业务示例
+
+实际业务场景的完整页面示例（含 wxml / js / css / json 四件套）已放在 `examples/` 目录，可直接作为页面模板参考：
+
+| 示例 | 场景说明 | 关键特性 |
+|------|----------|----------|
+| [组件类型](../examples/chat-content-example.md) | 角色自动切换渲染 | 文本渲染, Markdown渲染, role自动切换, HTML转义 |
