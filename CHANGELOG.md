@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.9](https://github.com/ivestszheng/agent-skills/compare/v0.0.8...v0.0.9) (2026-07-18)
+
+
+### Features
+
+* 新增ChatList多场景示例文档 ([c826ddf](https://github.com/ivestszheng/agent-skills/commit/c826ddf5851828e8e7676ecba9db3197ebf37906))
+
+
+### Documentation
+
+* 更新chat-sender和chat-list文档并新增示例 ([1d82beb](https://github.com/ivestszheng/agent-skills/commit/1d82beb03a8dc501423b616c076d154bff29755a))
+
+
+### Refactoring
+
+* **tdesign-miniprogram-chat:** 补充全量组件文档示例与参考内容 ([2ce04be](https://github.com/ivestszheng/agent-skills/commit/2ce04beeae474daff323238080557f4ff8d3e3db))
+
 ### [0.0.8](https://github.com/ivestszheng/agent-skills/compare/v0.0.7...v0.0.8) (2026-07-18)
 
 

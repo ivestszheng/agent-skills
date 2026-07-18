@@ -1,6 +1,6 @@
 {
   "name": "agent-skills",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Agent Skills and Rules",
   "main": "index.js",
   "scripts": {
