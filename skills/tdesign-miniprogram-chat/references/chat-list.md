@@ -1,6 +1,8 @@
+<!--
+  文件名: chat-list.md
+  官方文档：https://tdesign.tencent.com/miniprogram-chat/components/chat-list
+ -->
 # ChatList 对话列表
-
-官方文档: <https://tdesign.tencent.com/miniprogram-chat/components/chat-list>
 
 对话消息列表容器组件，负责管理消息的渲染和滚动行为。
 
@@ -59,9 +61,25 @@
 </view>
 ```
 
-## 核心 API
+## Props
 
-### 滚动到底部
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `data` | Array | - | 列表数据。传入后组件自动渲染 `t-chat-message`，无需手动 `wx:for`；配合 `virtualList` 可启用虚拟列表 |
+| `layout` | String | `'both'` | 布局方式：`'both'`（用户靠右、助手靠左）/ `'single'`（全部靠左） |
+| `reverse` | Boolean | `true` | 是否反转列表（最新消息在顶部）。默认 `true`，适合"新消息插入数组头部"的场景 |
+| `animation` | String | `'skeleton'` | 消息加载动画类型：`'skeleton'` / `'moving'` / `'gradient'` / `'dot'`，透传给内部 `chat-message` |
+| `virtualList` | Boolean | `false` | 是否开启虚拟列表。开启后仅渲染可视范围内的消息，优化大量消息性能 |
+| `fragmentLen` | Number | `8` | 虚拟列表初始渲染片段长度，滚动到边缘时按步长递增 |
+
+## Methods
+
+通过 `this.selectComponent('#chatList')` 获取实例后调用：
+
+| 方法名 | 说明 | 参数 |
+|--------|------|------|
+| `scrollToBottom()` | 滚动到底部（`reverse` 为 `true` 时滚动到顶部） | 无 |
+| `setScrollTop(scrollTop)` | 设置滚动条位置 | `scrollTop`: Number，默认 `0` |
 
 ```javascript
 scrollToBottom() {
@@ -72,22 +90,29 @@ scrollToBottom() {
 }
 ```
 
-### 事件
+## Events
 
-| 事件名 | 说明 |
+| 事件名 | 说明 | 回调参数 |
+|--------|------|----------|
+| `bindscroll` | 列表滚动时触发 | `e.detail`：scroll-view 原生 scroll 事件对象，含 `scrollTop`、`scrollHeight`、`deltaY` 等 |
+
+## Slots
+
+| 插槽名 | 说明 |
 |--------|------|
-| `bindscroll` | 列表滚动时触发 |
+| `default` | 默认插槽。当 `data` 属性为空或未传入时渲染，通常用于手动 `wx:for` 遍历 `t-chat-message` |
+| `footer` | 底部插槽，始终渲染。通常用于放置 `t-chat-sender` 输入框 |
 
-### 虚拟列表优化
+## 虚拟列表优化
 
-组件内置虚拟列表优化性能，仅在 `data` 属性中使用时生效：
+当消息量较大时，传入 `data` 属性并开启 `virtualList` 即可启用虚拟列表，无需手动 `wx:for`：
 
 ```xml
-<!-- 内置虚拟列表优化（data 属性方式） -->
-<t-chat id="chatList" data="{{chatList}}" />
+<!-- 虚拟列表模式：组件自动渲染 data 中的消息 -->
+<t-chat id="chatList" data="{{chatList}}" virtualList="{{true}}" />
 ```
 
-> 注意：使用 `data` 属性时，组件会自动使用虚拟列表，不再需要手动 `wx:for`。适合大量消息场景。
+> 注意：使用 `data` 属性时，组件自动遍历渲染 `chat-message`，不再需要手动 `wx:for`。`virtualList` 控制是否仅渲染可视范围。
 
 ## 完整业务示例
 
