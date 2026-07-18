@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.8](https://github.com/ivestszheng/agent-skills/compare/v0.0.7...v0.0.8) (2026-07-18)
+
+
+### Refactoring
+
+* 重构 reference chat-list ([57878ac](https://github.com/ivestszheng/agent-skills/commit/57878acecd39a16b4a66310de8a0dd36148e78f3))
+
 ### [0.0.7](https://github.com/ivestszheng/agent-skills/compare/v0.0.6...v0.0.7) (2026-07-14)
 
 
