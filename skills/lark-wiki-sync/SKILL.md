@@ -114,27 +114,45 @@ pnpm sync:wiki -- --filter 象州
 pnpm sync:wiki -- --dry-run
 ```
 
-## 新增文档流程
+## Index 导航页维护
 
-1. 在飞书知识库中创建一个 wiki 文档
-2. 从 wiki 文档 URL 中提取 token（`/wiki/` 后的部分）
-3. 在 `lark-wiki-sync.config.json` 的 `docs` 数组中添加一项
-4. 如果项目有 Index 导航页，通过 `lark-doc` skill 在 Index 页中对应标题下插入新文档的引用链接
-5. 运行 `pnpm sync:wiki -- --dry-run` 验证
+当配置文件中有 `indexWikiToken` 时，每次"同步文档到飞书"都必须同时更新 Index 导航页。Index 页不走 `sync:wiki` 脚本（它包含飞书特有的引用、图片等内容，不适合 overwrite），而是通过 `lark-doc` skill 增量编辑。
 
-### 更新 Index 导航页（可选）
+### 标准同步流程
 
-如果项目在飞书知识库中有一个 Index 导航页（汇总各文档的链接），新增文档后应同步更新。Index 页不走 `sync:wiki` 脚本（它包含飞书特有的引用、图片等内容，不适合 overwrite），而是通过 `lark-doc` skill 增量编辑：
+当用户说"同步文档到飞书"时，AI 应执行以下两步：
+
+1. **运行 `pnpm sync:wiki`** — 同步所有 Markdown 文档
+2. **更新 Index 导航页** — 更新顶部时间戳，并检查项目信息是否需要变更
+
+### 更新 Index 页时间戳
 
 1. 通过 `lark-cli docs +fetch --detail with-ids` 获取 Index 页的 block 结构
-2. 找到对应标题 block，在其后的列表中用 `lark-cli docs +update --command block_insert_after` 插入引用链接
-3. 引用链接使用 `<cite>` 标签：`<cite doc-id="<wikiToken>" file-type="wiki" title="<name>" type="doc"></cite>`
+2. 找到顶部的 `<blockquote>` block，用 `lark-cli docs +update --command block_replace` 更新时间戳
+3. 内容格式：`<blockquote><p>本导航页由 AI 助手自动维护 · 最后更新于 {YYYY-MM-DD HH:mm}</p></blockquote>`
 
-Index 页的 wikiToken 可记录在配置文件中以便 AI 查找：
+### 检查项目信息
+
+同步时应检查 Index 页中本仓库项目的链接和地址是否需要更新：
+
+- 变更日志引用链接的标题是否与配置文件中的 `name` 一致
+- 生产/测试环境地址是否与项目中的实际配置一致
+- 如有变更，用 `block_replace` 更新对应 block
+
+**注意**：Index 页可能包含不在本仓库中的项目（其他团队的项目），这些项目的信息不要修改，只更新本仓库管理的项目。
+
+### 新增文档时更新 Index 页
+
+新增文档时，在对应项目的 `<h2>` 标题下的 `<ul>` 列表中用 `lark-cli docs +update --command block_insert_after` 插入引用链接：
+- 引用链接使用 `<cite>` 标签：`<cite doc-id="<wikiToken>" file-type="wiki" title="<name>" type="doc"></cite>`
+
+### 配置
+
+Index 页的 wikiToken 记录在配置文件中：
 ```json
 {
   "feishuDomain": "xxx.feishu.cn",
-  "indexWikiToken": "可选，Index导航页的wikiToken",
+  "indexWikiToken": "Index导航页的wikiToken",
   "docs": [...]
 }
 ```
@@ -155,3 +173,4 @@ Index 页的 wikiToken 可记录在配置文件中以便 AI 查找：
 - **overwrite 模式**：每次同步会清空文档后重写（飞书自身的版本历史仍可回溯）
 - **Windows 兼容**：脚本在 Windows 上使用 `shell: true` 调用 lark-cli（`.cmd` 文件需要）
 - **任意文档**：不限于 CHANGELOG，任何 Markdown 文件都可以同步
+- **Index 页同步**：当配置文件有 `indexWikiToken` 时，每次同步文档后必须同时更新 Index 导航页（时间戳 + 项目信息检查）
