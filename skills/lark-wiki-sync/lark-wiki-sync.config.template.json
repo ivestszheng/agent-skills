@@ -1,0 +1,16 @@
+{
+  "feishuDomain": "your-tenant.feishu.cn",
+  "docs": [
+    {
+      "name": "文档显示名",
+      "path": "apps/your-app/CHANGELOG.md",
+      "wikiToken": "从飞书wiki文档URL中提取的token"
+    },
+    {
+      "name": "README",
+      "path": "README.md",
+      "wikiToken": "另一个wikiToken",
+      "title": "项目说明文档"
+    }
+  ]
+}
