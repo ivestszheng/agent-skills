@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.10](https://github.com/ivestszheng/agent-skills/compare/v0.0.9...v0.0.10) (2026-08-11)
+
+
+### Features
+
+* 新增飞书wiki同步技能并调整项目开源协议为MIT ([33910b3](https://github.com/ivestszheng/agent-skills/commit/33910b367e9f7f8ede5c33e0004b3d00deccf379))
+
 ### [0.0.9](https://github.com/ivestszheng/agent-skills/compare/v0.0.8...v0.0.9) (2026-07-18)
 
 
