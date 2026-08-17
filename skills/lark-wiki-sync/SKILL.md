@@ -43,6 +43,7 @@ description: >
 ```
 your-project/
 ├── lark-wiki-sync.config.json            # 项目配置（从模板复制后填写）
+├── lark-wiki-sync.state.json             # 同步状态（脚本自动维护，加入 .gitignore）
 └── package.json
 ```
 
@@ -104,7 +105,7 @@ cp .agents/skills/lark-wiki-sync/lark-wiki-sync.config.template.json lark-wiki-s
 ### 4. 运行
 
 ```bash
-# 同步所有配置的文档
+# 同步所有配置的文档（内容未变化的自动跳过）
 pnpm sync:wiki
 
 # 只同步名称或路径匹配的文档
@@ -112,18 +113,21 @@ pnpm sync:wiki -- --filter 象州
 
 # 预览不写入
 pnpm sync:wiki -- --dry-run
+
+# 忽略本地状态，强制全量同步
+pnpm sync:wiki -- --force
 ```
 
 ## Index 导航页维护
 
-当配置文件中有 `indexWikiToken` 时，每次"同步文档到飞书"都必须同时更新 Index 导航页。Index 页不走 `sync:wiki` 脚本（它包含飞书特有的引用、图片等内容，不适合 overwrite），而是通过 `lark-doc` skill 增量编辑。
+当配置文件中有 `indexWikiToken` 时，每次"同步文档到飞书"且本次有文档实际更新时，还必须同时更新 Index 导航页。Index 页不走 `sync:wiki` 脚本（它包含飞书特有的引用、图片等内容，不适合 overwrite），而是通过 `lark-doc` skill 增量编辑。
 
 ### 标准同步流程
 
 当用户说"同步文档到飞书"时，AI 应执行以下两步：
 
-1. **运行 `pnpm sync:wiki`** — 同步所有 Markdown 文档
-2. **更新 Index 导航页** — 更新顶部时间戳，并检查项目信息是否需要变更
+1. **运行 `pnpm sync:wiki`** - 同步所有 Markdown 文档（增量：未变化的自动跳过）
+2. **更新 Index 导航页** - 仅当本次有实际同步（输出中"成功"数量 > 0）时执行：更新顶部时间戳，并检查项目信息是否需要变更；全部"未变化"时跳过此步
 
 ### 更新 Index 页时间戳
 
@@ -162,15 +166,40 @@ Index 页的 wikiToken 记录在配置文件中：
 1. 从 cwd 向上查找 `lark-wiki-sync.config.json`
 2. 对每个文档条目：
    - 读取 Markdown 文件，将第一行 `# xxx` 替换为 `# {title 或 name}`
+   - 对处理后的内容（**不含时间戳标记行**，换行符已归一化为 LF）计算 sha256 哈希
+   - 与状态文件中记录的哈希对比：内容与 wikiToken 均未变化则跳过，不发任何 API 请求
    - 在标题后插入引用块：`<blockquote>本文档由 AI 助手自动同步 · 最后更新于 {时间}</blockquote>`
    - 通过 `lark-cli wiki +node-get` 解析 wikiToken 得到实际 doc token（obj_token）
    - 通过 `lark-cli docs +update --command overwrite --doc-format markdown` 以 bot 身份覆盖文档
-3. 输出同步结果摘要
+   - **同步成功后**才将内容哈希写入状态文件；失败保留旧状态，下次自动重试
+3. 输出同步结果摘要（成功 / 未变化 / 跳过 / 失败）
+
+## 增量同步状态文件
+
+脚本自动在配置文件同目录维护 `lark-wiki-sync.state.json`（如配置为 `custom.json` 则为 `custom.state.json`），**无需手动编辑**：
+
+```json
+{
+  "docs": {
+    "apps/your-app/CHANGELOG.md": {
+      "contentHash": "sha256 哈希",
+      "wikiToken": "上次同步使用的 wikiToken",
+      "syncedAt": "2026-08-17 10:00:00"
+    }
+  }
+}
+```
+
+- 以 `docs[].path` 为 key，内容或 wikiToken 变化才会重新同步
+- 建议加入 `.gitignore`（本机状态，无需提交）
+- 状态文件损坏或被删除时自动视为空状态，退化为全量同步，安全无副作用
+- 需要"无论如何都全量推送一次"时使用 `--force`
 
 ## 注意事项
 
 - **bot 身份写入**：以 bot 身份操作，便于在飞书文档历史中区分人工编辑和自动同步
-- **overwrite 模式**：每次同步会清空文档后重写（飞书自身的版本历史仍可回溯）
+- **增量同步**：内容未变化的文档自动跳过（不发 API 请求），只有内容或 wikiToken 变化时才 overwrite
+- **overwrite 模式**：实际同步时会清空文档后重写（飞书自身的版本历史仍可回溯）
 - **Windows 兼容**：脚本在 Windows 上使用 `shell: true` 调用 lark-cli（`.cmd` 文件需要）
 - **任意文档**：不限于 CHANGELOG，任何 Markdown 文件都可以同步
-- **Index 页同步**：当配置文件有 `indexWikiToken` 时，每次同步文档后必须同时更新 Index 导航页（时间戳 + 项目信息检查）
+- **Index 页同步**：当配置文件有 `indexWikiToken` 且本次有文档实际更新时，同步文档后必须同时更新 Index 导航页（时间戳 + 项目信息检查）；全部未变化时跳过
