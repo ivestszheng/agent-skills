@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.12](https://github.com/ivestszheng/agent-skills/compare/v0.0.11...v0.0.12) (2026-08-17)
+
+
+### Bug Fixes
+
+* **lark-wiki-sync:** 统一时间戳格式为带秒的本地时间 ([cd7436f](https://github.com/ivestszheng/agent-skills/commit/cd7436f50ecab89d4a2ec444b8744240b88712e1))
+
 ### [0.0.11](https://github.com/ivestszheng/agent-skills/compare/v0.0.10...v0.0.11) (2026-08-17)
 
 
