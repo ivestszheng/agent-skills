@@ -133,7 +133,7 @@ pnpm sync:wiki -- --force
 
 1. 通过 `lark-cli docs +fetch --detail with-ids` 获取 Index 页的 block 结构
 2. 找到顶部的 `<blockquote>` block，用 `lark-cli docs +update --command block_replace` 更新时间戳
-3. 内容格式：`<blockquote><p>本导航页由 AI 助手自动维护 · 最后更新于 {YYYY-MM-DD HH:mm}</p></blockquote>`
+3. 内容格式：`<blockquote><p>本导航页由 AI 助手自动维护 · 最后更新于 {YYYY-MM-DD HH:mm:ss}</p></blockquote>`（本地时间，含秒，与各文档页内的时间戳格式一致）
 
 ### 检查项目信息
 

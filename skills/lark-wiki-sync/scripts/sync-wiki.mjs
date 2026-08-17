@@ -163,7 +163,10 @@ for (const entry of entries) {
     : '内容有变更'
 
   // 在标题后插入同步标记，让阅读者知道文档由 AI 自动同步
-  const syncTime = new Date().toISOString().replace('T', ' ').slice(0, 19)
+  // 使用本地时间（含秒），与 Index 导航页的时间戳格式保持一致
+  const now = new Date()
+  const pad = (n) => String(n).padStart(2, '0')
+  const syncTime = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
   const noticeLine = `> 本文档由 AI 助手自动同步 · 最后更新于 ${syncTime}`
   if (firstHashIndex !== -1) {
     lines.splice(firstHashIndex + 1, 0, '', noticeLine, '')
