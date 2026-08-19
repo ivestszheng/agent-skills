@@ -54,6 +54,7 @@ your-project/
 ```json
 {
   "feishuDomain": "your-tenant.feishu.cn",
+  "notifyChatIds": ["oc_xxxxxxxxxxxxxxxx"],
   "docs": [
     {
       "name": "文档显示名",
@@ -73,6 +74,7 @@ your-project/
 | 字段 | 必填 | 说明 |
 |------|------|------|
 | `feishuDomain` | 是 | 飞书租户域名（如 `xxx.feishu.cn`） |
+| `notifyChatIds` | 否 | 通知群聊的 chat_id 数组（`oc_xxx`），可配置多个。配置后，每次有文档实际更新时，AI 会总结变更并发送摘要到这些群。留空数组 `[]` 则不通知 |
 | `docs[].name` | 是 | 显示名，用于日志输出和默认文档标题 |
 | `docs[].path` | 是 | 相对于项目根目录的 Markdown 文件路径 |
 | `docs[].wikiToken` | 是 | 飞书 wiki 节点 token（URL 中 `/wiki/` 后的部分），空字符串表示跳过 |
@@ -124,10 +126,11 @@ pnpm sync:wiki -- --force
 
 ### 标准同步流程
 
-当用户说"同步文档到飞书"时，AI 应执行以下两步：
+当用户说"同步文档到飞书"时，AI 应执行以下三步：
 
 1. **运行 `pnpm sync:wiki`** - 同步所有 Markdown 文档（增量：未变化的自动跳过）
 2. **更新 Index 导航页** - 仅当本次有实际同步（输出中"成功"数量 > 0）时执行：更新顶部时间戳，并检查项目信息是否需要变更；全部"未变化"时跳过此步
+3. **总结变更并通知群聊** - 仅当本次有实际同步（"成功"数量 > 0）且配置了 `notifyChatIds` 时执行：AI 总结本次更新的文档内容，发送摘要到配置的群聊；详见下方「总结变更并通知群聊」
 
 ### 更新 Index 页时间戳
 
@@ -160,6 +163,62 @@ Index 页的 wikiToken 记录在配置文件中：
   "docs": [...]
 }
 ```
+
+## 总结变更并通知群聊
+
+当配置文件中有 `notifyChatIds`（非空数组）且本次有文档实际更新（同步成功数量 > 0）时，同步完成后 AI 需总结本次变更并发送摘要到配置的群聊。全部"未变化"时跳过此步。
+
+### 前置条件
+
+- **bot 已加入所有目标群**：以 `--as bot` 发送，bot 必须已是每个目标群的成员，否则对应群发送失败
+- **目标群 chat_id**：即 `notifyChatIds` 中的每一项，格式 `oc_xxx`
+
+### 获取群 chat_id
+
+若只知道群名，可用 lark-im 查询 chat_id：
+
+```bash
+# 按群名搜索
+lark-cli im +chat-search --query "群名关键词" --as user
+# 或列出 bot 已加入的群
+lark-cli im +chat-list --as bot
+```
+
+### 通知流程
+
+1. **确定已更新的文档**：从 `pnpm sync:wiki` 输出中解析 `ok     {name} - 同步成功` 行，得到本次实际更新的文档列表
+2. **读取并总结变更**：逐个读取已更新文档的本地 Markdown 文件，生成简洁的中文摘要
+   - CHANGELOG 类文档：聚焦最新版本条目，提炼新增 / 修复 / 优化等要点
+   - 其他文档：概述本次主要变更内容
+3. **组装摘要消息**：用 Markdown 组织消息，包含：
+   - 标题（如「文档更新摘要 · {YYYY-MM-DD HH:mm}」）
+   - 每个已更新文档的小标题 + 变更要点（控制在 3~6 条以内）
+   - 文档的飞书访问链接：`https://{feishuDomain}/wiki/{wikiToken}`
+4. **发送到所有配置群**：对 `notifyChatIds` 中每个 chat_id 各发一条：
+   ```bash
+   lark-cli im +messages-send --chat-id <notifyChatId> --markdown '<摘要内容>' --as bot
+   ```
+
+### 示例消息
+
+```markdown
+## 文档更新摘要 · 2026-08-19 14:30
+
+### 象州客户端 CHANGELOG
+- 新增「一键导出」功能
+- 修复低版本 iOS 表格滚动卡顿
+- 优化首屏加载速度
+
+### README
+- 补充环境变量配置说明
+- 更新部署架构图
+
+文档链接：
+- [象州客户端 CHANGELOG](https://xxx.feishu.cn/wiki/xxxx)
+- [README](https://xxx.feishu.cn/wiki/yyyy)
+```
+
+> 发送前可先将摘要内容交用户确认；若希望全自动，配置 `notifyChatIds` 并触发同步即视为已授权直接发送。
 
 ## 脚本工作原理
 
@@ -203,3 +262,4 @@ Index 页的 wikiToken 记录在配置文件中：
 - **Windows 兼容**：脚本在 Windows 上使用 `shell: true` 调用 lark-cli（`.cmd` 文件需要）
 - **任意文档**：不限于 CHANGELOG，任何 Markdown 文件都可以同步
 - **Index 页同步**：当配置文件有 `indexWikiToken` 且本次有文档实际更新时，同步文档后必须同时更新 Index 导航页（时间戳 + 项目信息检查）；全部未变化时跳过
+- **群聊通知**：当配置文件有 `notifyChatIds`（非空）且本次有文档实际更新时，同步后 AI 会总结变更并发送摘要到这些群；bot 需已加入每个目标群。留空数组 `[]` 则不通知

@@ -1,5 +1,6 @@
 {
   "feishuDomain": "your-tenant.feishu.cn",
+  "notifyChatIds": [],
   "docs": [
     {
       "name": "文档显示名",
