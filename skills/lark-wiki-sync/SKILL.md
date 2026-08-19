@@ -168,6 +168,8 @@ Index 页的 wikiToken 记录在配置文件中：
 
 当配置文件中有 `notifyChatIds`（非空数组）且本次有文档实际更新（同步成功数量 > 0）时，同步完成后 AI 需总结本次变更并发送摘要到配置的群聊。全部"未变化"时跳过此步。
 
+> **关键概念**：同步"成功"仅表示内容哈希与状态文件不同，可能因状态文件丢失/重置导致全量重新同步，不代表文档近期有实际修改。必须用 git 验证哪些文档真正被修改过，只对有实际变更的文档生成摘要。
+
 ### 前置条件
 
 - **bot 已加入所有目标群**：以 `--as bot` 发送，bot 必须已是每个目标群的成员，否则对应群发送失败
@@ -186,18 +188,30 @@ lark-cli im +chat-list --as bot
 
 ### 通知流程
 
-1. **确定已更新的文档**：从 `pnpm sync:wiki` 输出中解析 `ok     {name} - 同步成功` 行，得到本次实际更新的文档列表
-2. **读取并总结变更**：逐个读取已更新文档的本地 Markdown 文件，生成简洁的中文摘要
+1. **同步前读取状态**：运行 `pnpm sync:wiki` 前，先读取 `lark-wiki-sync.state.json`，记录每个文档的 `syncedAt`。若状态文件不存在，说明是首次同步，同步完成后跳过通知（无法判断哪些是实际变更）
+2. **确定已同步的文档**：从 `pnpm sync:wiki` 输出中解析 `ok     {name} - 同步成功` 行，得到本次同步成功的文档列表
+3. **用 git 验证实际变更**：对每个同步成功的文档，用 git 检查自上次同步时间以来是否有实际提交：
+   ```bash
+   # 查看文件自上次同步时间以来的提交记录
+   git log --since="<syncedAt>" --oneline -- <path>
+   ```
+   - 无提交记录 → 内容未实际变化（状态丢失导致重新同步），**跳过该文档**
+   - 有提交记录 → 确认有实际变更，纳入摘要
+4. **读取并总结变更**：仅对确认有实际变更的文档，读取本地 Markdown 文件，生成简洁的中文摘要
    - CHANGELOG 类文档：聚焦最新版本条目，提炼新增 / 修复 / 优化等要点
    - 其他文档：概述本次主要变更内容
-3. **组装摘要消息**：用 Markdown 组织消息，包含：
+5. **组装摘要消息**：用 Markdown 组织消息，包含：
    - 标题（如「文档更新摘要 · {YYYY-MM-DD HH:mm}」）
    - 每个已更新文档的小标题 + 变更要点（控制在 3~6 条以内）
    - 文档的飞书访问链接：`https://{feishuDomain}/wiki/{wikiToken}`
-4. **发送到所有配置群**：对 `notifyChatIds` 中每个 chat_id 各发一条：
-   ```bash
-   lark-cli im +messages-send --chat-id <notifyChatId> --markdown '<摘要内容>' --as bot
-   ```
+6. **展示摘要待用户确认**：将组装好的摘要内容展示给用户，等待用户确认后再发送
+7. **发送到所有配置群**：用户确认后，对 `notifyChatIds` 中每个 chat_id 各发一条。
+
+   > **注意**：`im +messages-send --markdown` **不支持** `@file` 语法（与 `docs +update --content` 不同）。长内容在 Windows 上需用 PowerShell 变量传递：
+   > ```powershell
+   > $content = Get-Content -Raw tmp-notify.md
+   > lark-cli im +messages-send --chat-id <notifyChatId> --markdown $content --as bot
+   > ```
 
 ### 示例消息
 
@@ -218,7 +232,7 @@ lark-cli im +chat-list --as bot
 - [README](https://xxx.feishu.cn/wiki/yyyy)
 ```
 
-> 发送前可先将摘要内容交用户确认；若希望全自动，配置 `notifyChatIds` 并触发同步即视为已授权直接发送。
+> **默认行为**：发送前必须先将摘要内容展示给用户确认，用户同意后再发送。
 
 ## 脚本工作原理
 
