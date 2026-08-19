@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.13](https://github.com/ivestszheng/agent-skills/compare/v0.0.12...v0.0.13) (2026-08-19)
+
+
+### Refactoring
+
+* **lark-wiki-sync:** 添加文档更新提示同步到群功能 ([e7c81d6](https://github.com/ivestszheng/agent-skills/commit/e7c81d679411cda0c5d650757c93182e2c53689f))
+
 ### [0.0.12](https://github.com/ivestszheng/agent-skills/compare/v0.0.11...v0.0.12) (2026-08-17)
 
 
