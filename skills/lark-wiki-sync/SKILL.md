@@ -204,32 +204,33 @@ lark-cli im +chat-list --as bot
    - 标题（如「文档更新摘要 · {YYYY-MM-DD HH:mm}」）
    - 每个已更新文档的小标题 + 变更要点（控制在 3~6 条以内）
    - 文档的飞书访问链接：`https://{feishuDomain}/wiki/{wikiToken}`
+   - 若配置了 `indexWikiToken`，末尾附加 Index 导航页链接：`https://{feishuDomain}/wiki/{indexWikiToken}`
 6. **展示摘要待用户确认**：将组装好的摘要内容展示给用户，等待用户确认后再发送
 7. **发送到所有配置群**：用户确认后，对 `notifyChatIds` 中每个 chat_id 各发一条。
 
-   > **注意**：`im +messages-send --markdown` **不支持** `@file` 语法（与 `docs +update --content` 不同）。长内容在 Windows 上需用 PowerShell 变量传递：
+   > **注意**：飞书 `--markdown` 消息不支持标题语法（`#`/`##`/`###` 会原样显示），必须使用 **interactive 卡片消息**（`--msg-type interactive --content`）才能正确渲染 Markdown。卡片内容用 `{"elements":[{"tag":"markdown","content":"..."}]}` 格式包裹，标题用 `**粗体**` 替代 `#`。
+   >
+   > **Windows/PowerShell 传递 JSON**：PowerShell 传参给外部命令时会剥离双引号，导致 JSON 无效。需对双引号转义后传递：
    > ```powershell
-   > $content = Get-Content -Raw tmp-notify.md
-   > lark-cli im +messages-send --chat-id <notifyChatId> --markdown $content --as bot
+   > $content = (Get-Content -Raw tmp-notify.json).Replace('"', '\"')
+   > lark-cli im +messages-send --as bot --chat-id <notifyChatId> --msg-type interactive --content $content
    > ```
+   >
+   > **发送给个人**：用 `--user-id <open_id>` 替代 `--chat-id`，飞书会自动创建 bot 与用户的 p2p 会话（无需提前加好友）。
 
 ### 示例消息
 
-```markdown
-## 文档更新摘要 · 2026-08-19 14:30
+interactive 卡片消息的 JSON 结构（标题用 `**粗体**`，不支持 `#` 标题语法）：
 
-### 象州客户端 CHANGELOG
-- 新增「一键导出」功能
-- 修复低版本 iOS 表格滚动卡顿
-- 优化首屏加载速度
-
-### README
-- 补充环境变量配置说明
-- 更新部署架构图
-
-文档链接：
-- [象州客户端 CHANGELOG](https://xxx.feishu.cn/wiki/xxxx)
-- [README](https://xxx.feishu.cn/wiki/yyyy)
+```json
+{
+  "elements": [
+    {
+      "tag": "markdown",
+      "content": "**文档更新摘要 · 2026-08-19 14:30**\n\n**象州客户端 CHANGELOG**\n- 新增「一键导出」功能\n- 修复低版本 iOS 表格滚动卡顿\n- 优化首屏加载速度\n\n**README**\n- 补充环境变量配置说明\n- 更新部署架构图\n\n文档链接：\n- [象州客户端 CHANGELOG](https://xxx.feishu.cn/wiki/xxxx)\n- [README](https://xxx.feishu.cn/wiki/yyyy)\n- [导航页 Index](https://xxx.feishu.cn/wiki/indexWikiToken)"
+    }
+  ]
+}
 ```
 
 > **默认行为**：发送前必须先将摘要内容展示给用户确认，用户同意后再发送。
