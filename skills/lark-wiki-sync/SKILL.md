@@ -168,6 +168,8 @@ Index 页的 wikiToken 记录在配置文件中：
 
 当配置文件中有 `notifyChatIds`（非空数组）且本次有文档实际更新（同步成功数量 > 0）时，同步完成后 AI 需总结本次变更并发送摘要到配置的群聊。全部"未变化"时跳过此步。
 
+> **关键概念**：同步"成功"仅表示内容哈希与状态文件不同，可能因状态文件丢失/重置导致全量重新同步，不代表文档近期有实际修改。必须用 git 验证哪些文档真正被修改过，只对有实际变更的文档生成摘要。
+
 ### 前置条件
 
 - **bot 已加入所有目标群**：以 `--as bot` 发送，bot 必须已是每个目标群的成员，否则对应群发送失败
@@ -186,39 +188,72 @@ lark-cli im +chat-list --as bot
 
 ### 通知流程
 
-1. **确定已更新的文档**：从 `pnpm sync:wiki` 输出中解析 `ok     {name} - 同步成功` 行，得到本次实际更新的文档列表
-2. **读取并总结变更**：逐个读取已更新文档的本地 Markdown 文件，生成简洁的中文摘要
+1. **同步前读取状态**：运行 `pnpm sync:wiki` 前，先读取 `lark-wiki-sync.state.json`，记录每个文档的 `syncedAt`。若状态文件不存在，说明是首次同步，同步完成后跳过通知（无法判断哪些是实际变更）
+2. **确定已同步的文档**：从 `pnpm sync:wiki` 输出中解析 `ok     {name} - 同步成功` 行，得到本次同步成功的文档列表
+3. **用 git 验证实际变更**：对每个同步成功的文档，用 git 检查自上次同步时间以来是否有实际提交：
+   ```bash
+   # 查看文件自上次同步时间以来的提交记录
+   git log --since="<syncedAt>" --oneline -- <path>
+   ```
+   - 无提交记录 → 内容未实际变化（状态丢失导致重新同步），**跳过该文档**
+   - 有提交记录 → 确认有实际变更，纳入摘要
+4. **读取并总结变更**：仅对确认有实际变更的文档，读取本地 Markdown 文件，生成简洁的中文摘要
    - CHANGELOG 类文档：聚焦最新版本条目，提炼新增 / 修复 / 优化等要点
    - 其他文档：概述本次主要变更内容
-3. **组装摘要消息**：用 Markdown 组织消息，包含：
+5. **组装摘要消息**：用 Markdown 组织消息，包含：
    - 标题（如「文档更新摘要 · {YYYY-MM-DD HH:mm}」）
    - 每个已更新文档的小标题 + 变更要点（控制在 3~6 条以内）
    - 文档的飞书访问链接：`https://{feishuDomain}/wiki/{wikiToken}`
-4. **发送到所有配置群**：对 `notifyChatIds` 中每个 chat_id 各发一条：
-   ```bash
-   lark-cli im +messages-send --chat-id <notifyChatId> --markdown '<摘要内容>' --as bot
-   ```
+   - 若配置了 `indexWikiToken`，末尾附加 Index 导航页链接：`https://{feishuDomain}/wiki/{indexWikiToken}`
+6. **展示摘要待用户确认**：将组装好的摘要内容展示给用户，等待用户确认后再发送
+7. **发送到所有配置群**：用户确认后，对 `notifyChatIds` 中每个 chat_id 各发一条。
+
+   > **注意**：飞书 `--markdown` 消息不支持标题语法（`#`/`##`/`###` 会原样显示），必须使用 **interactive 卡片消息**（`--msg-type interactive --content`）才能正确渲染 Markdown。卡片内容用 `{"elements":[{"tag":"markdown","content":"..."}]}` 格式包裹，标题用 `**粗体**` 替代 `#`。
+   >
+    > **Windows/PowerShell 发送**：PowerShell 5 给外部命令传内联 JSON 会破坏引号/反斜杠，`lark-cli im +messages-send --content '<json>'` 不可靠。改用通用 `api` 命令 + `@file`（已验证）：
+    > ```powershell
+    > $md = @'
+    > **文档更新摘要 · 2026-01-01 00:00**
+    >
+    > **某文档 CHANGELOG**
+    > - 变更要点 1
+    > - 变更要点 2
+    >
+    > 文档链接：
+    > - [某文档 CHANGELOG](https://{feishuDomain}/wiki/{wikiToken})
+    > '@
+    > $card = @{ elements = @( @(@{ tag = 'markdown'; content = $md }) ) } | ConvertTo-Json -Depth 10 -Compress
+    > $body = @{ receive_id = '<notifyChatId>'; msg_type = 'interactive'; content = $card } | ConvertTo-Json -Depth 10 -Compress
+    > $qq = 'tmp-params.json'; [System.IO.File]::WriteAllText($qq, '{"receive_id_type":"chat_id"}', (New-Object System.Text.UTF8Encoding $false))
+    > $bp = 'tmp-body.json'; [System.IO.File]::WriteAllText($bp, $body, (New-Object System.Text.UTF8Encoding $false))
+    > lark-cli api POST '/open-apis/im/v1/messages' --params @tmp-params.json --data @tmp-body.json
+    > Remove-Item $qq, $bp
+    > ```
+    > 要点：
+    > - `content` 字段必须是**字符串化**的卡片 JSON（`ConvertTo-Json` 对嵌套对象会自动字符串化，直接传对象会报 `field validation failed`）
+    > - `receive_id_type` 必须走 `--params` 传参；写在 URL 查询串里不生效
+    > - 文件必须**无 BOM UTF-8** 写入（PowerShell 5 的 `Set-Content -Encoding UTF8` 会带 BOM）
+    > - markdown 内容用 here-string 多行文本，换行用真实换行符；卡片内用 `**粗体**` 做小标题
+    > - ⚠️ `lark-cli im +messages-send --dry-run` **实际会真的发送**（已验证），排查发送问题时禁止使用
+    > - **发送给个人**：`--params` 改 `{"receive_id_type":"open_id"}`，`receive_id` 用 `ou_xxx`，飞书会自动创建 bot 与用户的 p2p 会话（无需提前加好友）
+    > - **撤回消息**：`lark-cli im messages delete --as bot --params @file --yes`，文件内容为 `{"message_id":"om_xxx"}`（message_id 从发送响应的 `data.body.message_id` 获取）
 
 ### 示例消息
 
-```markdown
-## 文档更新摘要 · 2026-08-19 14:30
+interactive 卡片消息的 JSON 结构（标题用 `**粗体**`，不支持 `#` 标题语法）：
 
-### 象州客户端 CHANGELOG
-- 新增「一键导出」功能
-- 修复低版本 iOS 表格滚动卡顿
-- 优化首屏加载速度
-
-### README
-- 补充环境变量配置说明
-- 更新部署架构图
-
-文档链接：
-- [象州客户端 CHANGELOG](https://xxx.feishu.cn/wiki/xxxx)
-- [README](https://xxx.feishu.cn/wiki/yyyy)
+```json
+{
+  "elements": [
+    {
+      "tag": "markdown",
+      "content": "**文档更新摘要 · 2026-08-19 14:30**\n\n**象州客户端 CHANGELOG**\n- 新增「一键导出」功能\n- 修复低版本 iOS 表格滚动卡顿\n- 优化首屏加载速度\n\n**README**\n- 补充环境变量配置说明\n- 更新部署架构图\n\n文档链接：\n- [象州客户端 CHANGELOG](https://xxx.feishu.cn/wiki/xxxx)\n- [README](https://xxx.feishu.cn/wiki/yyyy)\n- [导航页 Index](https://xxx.feishu.cn/wiki/indexWikiToken)"
+    }
+  ]
+}
 ```
 
-> 发送前可先将摘要内容交用户确认；若希望全自动，配置 `notifyChatIds` 并触发同步即视为已授权直接发送。
+> **默认行为**：发送前必须先将摘要内容展示给用户确认，用户同意后再发送。
 
 ## 脚本工作原理
 
