@@ -210,13 +210,33 @@ lark-cli im +chat-list --as bot
 
    > **注意**：飞书 `--markdown` 消息不支持标题语法（`#`/`##`/`###` 会原样显示），必须使用 **interactive 卡片消息**（`--msg-type interactive --content`）才能正确渲染 Markdown。卡片内容用 `{"elements":[{"tag":"markdown","content":"..."}]}` 格式包裹，标题用 `**粗体**` 替代 `#`。
    >
-   > **Windows/PowerShell 传递 JSON**：PowerShell 传参给外部命令时会剥离双引号，导致 JSON 无效。需对双引号转义后传递：
-   > ```powershell
-   > $content = (Get-Content -Raw tmp-notify.json).Replace('"', '\"')
-   > lark-cli im +messages-send --as bot --chat-id <notifyChatId> --msg-type interactive --content $content
-   > ```
-   >
-   > **发送给个人**：用 `--user-id <open_id>` 替代 `--chat-id`，飞书会自动创建 bot 与用户的 p2p 会话（无需提前加好友）。
+    > **Windows/PowerShell 发送**：PowerShell 5 给外部命令传内联 JSON 会破坏引号/反斜杠，`lark-cli im +messages-send --content '<json>'` 不可靠。改用通用 `api` 命令 + `@file`（已验证）：
+    > ```powershell
+    > $md = @'
+    > **文档更新摘要 · 2026-01-01 00:00**
+    >
+    > **某文档 CHANGELOG**
+    > - 变更要点 1
+    > - 变更要点 2
+    >
+    > 文档链接：
+    > - [某文档 CHANGELOG](https://{feishuDomain}/wiki/{wikiToken})
+    > '@
+    > $card = @{ elements = @( @(@{ tag = 'markdown'; content = $md }) ) } | ConvertTo-Json -Depth 10 -Compress
+    > $body = @{ receive_id = '<notifyChatId>'; msg_type = 'interactive'; content = $card } | ConvertTo-Json -Depth 10 -Compress
+    > $qq = 'tmp-params.json'; [System.IO.File]::WriteAllText($qq, '{"receive_id_type":"chat_id"}', (New-Object System.Text.UTF8Encoding $false))
+    > $bp = 'tmp-body.json'; [System.IO.File]::WriteAllText($bp, $body, (New-Object System.Text.UTF8Encoding $false))
+    > lark-cli api POST '/open-apis/im/v1/messages' --params @tmp-params.json --data @tmp-body.json
+    > Remove-Item $qq, $bp
+    > ```
+    > 要点：
+    > - `content` 字段必须是**字符串化**的卡片 JSON（`ConvertTo-Json` 对嵌套对象会自动字符串化，直接传对象会报 `field validation failed`）
+    > - `receive_id_type` 必须走 `--params` 传参；写在 URL 查询串里不生效
+    > - 文件必须**无 BOM UTF-8** 写入（PowerShell 5 的 `Set-Content -Encoding UTF8` 会带 BOM）
+    > - markdown 内容用 here-string 多行文本，换行用真实换行符；卡片内用 `**粗体**` 做小标题
+    > - ⚠️ `lark-cli im +messages-send --dry-run` **实际会真的发送**（已验证），排查发送问题时禁止使用
+    > - **发送给个人**：`--params` 改 `{"receive_id_type":"open_id"}`，`receive_id` 用 `ou_xxx`，飞书会自动创建 bot 与用户的 p2p 会话（无需提前加好友）
+    > - **撤回消息**：`lark-cli im messages delete --as bot --params @file --yes`，文件内容为 `{"message_id":"om_xxx"}`（message_id 从发送响应的 `data.body.message_id` 获取）
 
 ### 示例消息
 
