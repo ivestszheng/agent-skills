@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.15](https://github.com/ivestszheng/agent-skills/compare/v0.0.14...v0.0.15) (2026-09-10)
+
+
+### Features
+
+* 以 bot 身份通过飞书发送消息，自动处理凭据注入和 strict-mode 绕过。当需要以机器人身份向飞书群或个人发送消息时调用。 ([1a82269](https://github.com/ivestszheng/agent-skills/commit/1a82269aadf5b7d7beec5f240b000c040c115905))
+
 ### [0.0.14](https://github.com/ivestszheng/agent-skills/compare/v0.0.13...v0.0.14) (2026-09-03)
 
 
