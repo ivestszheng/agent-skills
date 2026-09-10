@@ -15,7 +15,7 @@ description: "以 bot 身份通过飞书发送消息，自动处理凭据注入�
 
 ## 凭据文件
 
-路径：`C:\Users\ives\lark_bot_srcret.json`
+路径：`C:\Users\ives\lark_bot_secret.json`
 
 结构（JSON，键名大小写敏感）：
 
@@ -34,7 +34,7 @@ description: "以 bot 身份通过飞书发送消息，自动处理凭据注入�
 
 ```powershell
 # 1. 读取凭据文件（不打印密钥）
-$cfg = Get-Content "C:\Users\ives\lark_bot_srcret.json" -Raw | ConvertFrom-Json
+$cfg = Get-Content "C:\Users\ives\lark_bot_secret.json" -Raw | ConvertFrom-Json
 
 # 2. 调用飞书 API 获取 tenant_access_token
 $body = @{ app_id = $cfg.AppID; app_secret = $cfg.AppSecret } | ConvertTo-Json
@@ -54,13 +54,14 @@ lark-cli im +messages-send --chat-id <CHAT_ID> --markdown $msg --as bot
 
 ## 环境变量说明
 
-| 变量 | 作用 |
-|------|------|
-| `LARKSUITE_CLI_APP_ID` | 覆盖为凭据文件中的 AppID（系统注入的可能是不同的 app） |
-| `LARKSUITE_CLI_TENANT_ACCESS_TOKEN` | bot 身份所需的租户令牌，通过飞书 API 获取 |
-| `LARKSUITE_CLI_STRICT_MODE=off` | 绕过 strict-mode 策略锁（系统默认锁为 user） |
+| 变量                                | 作用                                                   |
+| ----------------------------------- | ------------------------------------------------------ |
+| `LARKSUITE_CLI_APP_ID`              | 覆盖为凭据文件中的 AppID（系统注入的可能是不同的 app） |
+| `LARKSUITE_CLI_TENANT_ACCESS_TOKEN` | bot 身份所需的租户令牌，通过飞书 API 获取              |
+| `LARKSUITE_CLI_STRICT_MODE=off`     | 绕过 strict-mode 策略锁（系统默认锁为 user）           |
 
 三个变量缺一不可：
+
 - 缺 `APP_ID`：CLI 用错误的 app，bot 令牌与 app 不匹配
 - 缺 `TENANT_ACCESS_TOKEN`：报 `token_missing`，bot 无可用令牌
 - 缺 `STRICT_MODE=off`：报 `strict mode is "user"`，bot 命令被拦截
@@ -77,7 +78,7 @@ lark-cli im +messages-send --chat-id <CHAT_ID> --markdown $msg --as bot
 
 ## 注意事项
 
-- 凭据文件路径 `C:\Users\ives\lark_bot_srcret.json` 是硬编码的，路径变更时需更新此 skill
+- 凭据文件路径 `C:\Users\ives\lark_bot_secret.json` 是硬编码的，路径变更时需更新此 skill
 - JSON 键名为 `AppID`（大写 D）和 `AppSecret`，大小写敏感
 - tenant_access_token 有效期 7200 秒（2小时），定时任务每次执行时重新获取即可
 - 发送前需确认 bot 已在目标群中（或与目标用户有私聊关系）
