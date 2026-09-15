@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.17](https://github.com/ivestszheng/agent-skills/compare/v0.0.16...v0.0.17) (2026-09-15)
+
+
+### Refactoring
+
+* **lark-bot-send:** 删除不再使用的 SKILL.md 文档 ([b1a6a07](https://github.com/ivestszheng/agent-skills/commit/b1a6a0724d1a42b8896b34652128ddee47c7c69a))
+
 ### [0.0.16](https://github.com/ivestszheng/agent-skills/compare/v0.0.15...v0.0.16) (2026-09-10)
 
 
