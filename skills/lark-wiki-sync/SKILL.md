@@ -111,7 +111,7 @@ cp .agents/skills/lark-wiki-sync/lark-wiki-sync.config.template.json lark-wiki-s
 pnpm sync:wiki
 
 # 只同步名称或路径匹配的文档
-pnpm sync:wiki -- --filter 象州
+pnpm sync:wiki -- --filter 关键词
 
 # 预览不写入
 pnpm sync:wiki -- --dry-run
@@ -172,7 +172,7 @@ Index 页的 wikiToken 记录在配置文件中：
 
 ### 前置条件
 
-- **bot 已加入所有目标群**：以 `--as bot` 发送，bot 必须已是每个目标群的成员，否则对应群发送失败
+- **bot 已加入所有目标群**：bot 通过 OpenAPI 发送消息时，必须已是每个目标群的成员，否则对应群发送失败
 - **目标群 chat_id**：即 `notifyChatIds` 中的每一项，格式 `oc_xxx`
 
 ### 获取群 chat_id
@@ -200,60 +200,175 @@ lark-cli im +chat-list --as bot
 4. **读取并总结变更**：仅对确认有实际变更的文档，读取本地 Markdown 文件，生成简洁的中文摘要
    - CHANGELOG 类文档：聚焦最新版本条目，提炼新增 / 修复 / 优化等要点
    - 其他文档：概述本次主要变更内容
-5. **组装摘要消息**：用 Markdown 组织消息，包含：
-   - 标题（如「文档更新摘要 · {YYYY-MM-DD HH:mm}」）
-   - 每个已更新文档的小标题 + 变更要点（控制在 3~6 条以内）
-   - 文档的飞书访问链接：`https://{feishuDomain}/wiki/{wikiToken}`
-   - 若配置了 `indexWikiToken`，末尾附加 Index 导航页链接：`https://{feishuDomain}/wiki/{indexWikiToken}`
+5. **组装摘要消息**：使用 **Card 2.0** 卡片（`"schema": "2.0"`），结构包含四个模块（均为灰色背景块 `background_style: "grey"`）：
+   - **统计块**（顶部 4 列 `column_set`）：统计本次更新的关键数字，数字用 `text_size: "heading"` + 指定颜色，标签用 `text_color: "grey"`。四项及颜色：
+     | 统计项 | 数字颜色 | 说明 |
+     |--------|----------|------|
+     | 更新文档 | `blue` | 本次实际更新的文档数 |
+     | 版本发布 | `violet` | 本次涉及的版本发布数 |
+     | 新增功能 | `green` | 变更中的新增功能数 |
+     | Bug 修复 | `orange` | 变更中的修复数 |
+   - **概览块**（`column_set` 单列）：标题 `**文档更新概览**` + 一段中文概述，总结本次同步的范围和主要内容
+   - **详情块**（`column_set` 单列）：标题 `**文档更新详情**`，每个文档用 `**{docs[].name}**` + 版本号 badge（`` `{版本号}` ``）作为小标题，下方列变更要点（控制在 3~6 条以内）
+   - **链接块**（`column_set` 单列）：标题 `**文档链接**`，列出所有已更新文档的飞书链接 + Index 导航页链接
+   - 文档链接的显示文本**必须使用 `lark-wiki-sync.config.json` 中 `docs[].name` 的原值**，不得缩写或改写
+   - 链接 URL 格式：`https://{feishuDomain}/wiki/{wikiToken}`；Index 页：`https://{feishuDomain}/wiki/{indexWikiToken}`
+   - 末尾加灰色脚注：`<font color='grey'>由 AI 工作助手自动同步并发送</font>`
 6. **展示摘要待用户确认**：将组装好的摘要内容展示给用户，等待用户确认后再发送
 7. **发送到所有配置群**：用户确认后，对 `notifyChatIds` 中每个 chat_id 各发一条。
 
-   > **注意**：飞书 `--markdown` 消息不支持标题语法（`#`/`##`/`###` 会原样显示），必须使用 **interactive 卡片消息**（`--msg-type interactive --content`）才能正确渲染 Markdown。卡片内容用 `{"elements":[{"tag":"markdown","content":"..."}]}` 格式包裹，标题用 `**粗体**` 替代 `#`。
+   > **发送方式**：不使用 lark-cli，直接调用飞书 OpenAPI。用 bot 的 `app_id` / `app_secret` 获取 `tenant_access_token`，再 POST 到 `/open-apis/im/v1/messages?receive_id_type=chat_id`，`receive_id` 放 body。优先使用 Card 2.0 卡片（`msg_type: "interactive"`）。
    >
-    > **Windows/PowerShell 发送**：PowerShell 5 给外部命令传内联 JSON 会破坏引号/反斜杠，`lark-cli im +messages-send --content '<json>'` 不可靠。改用通用 `api` 命令 + `@file`（已验证）：
-    > ```powershell
-    > $md = @'
-    > **文档更新摘要 · 2026-01-01 00:00**
-    >
-    > **某文档 CHANGELOG**
-    > - 变更要点 1
-    > - 变更要点 2
-    >
-    > 文档链接：
-    > - [某文档 CHANGELOG](https://{feishuDomain}/wiki/{wikiToken})
-    > '@
-    > $card = @{ elements = @( @(@{ tag = 'markdown'; content = $md }) ) } | ConvertTo-Json -Depth 10 -Compress
-    > $body = @{ receive_id = '<notifyChatId>'; msg_type = 'interactive'; content = $card } | ConvertTo-Json -Depth 10 -Compress
-    > $qq = 'tmp-params.json'; [System.IO.File]::WriteAllText($qq, '{"receive_id_type":"chat_id"}', (New-Object System.Text.UTF8Encoding $false))
-    > $bp = 'tmp-body.json'; [System.IO.File]::WriteAllText($bp, $body, (New-Object System.Text.UTF8Encoding $false))
-    > lark-cli api POST '/open-apis/im/v1/messages' --params @tmp-params.json --data @tmp-body.json
-    > Remove-Item $qq, $bp
-    > ```
-    > 要点：
-    > - `content` 字段必须是**字符串化**的卡片 JSON（`ConvertTo-Json` 对嵌套对象会自动字符串化，直接传对象会报 `field validation failed`）
-    > - `receive_id_type` 必须走 `--params` 传参；写在 URL 查询串里不生效
-    > - 文件必须**无 BOM UTF-8** 写入（PowerShell 5 的 `Set-Content -Encoding UTF8` 会带 BOM）
-    > - markdown 内容用 here-string 多行文本，换行用真实换行符；卡片内用 `**粗体**` 做小标题
-    > - ⚠️ `lark-cli im +messages-send --dry-run` **实际会真的发送**（已验证），排查发送问题时禁止使用
-    > - **发送给个人**：`--params` 改 `{"receive_id_type":"open_id"}`，`receive_id` 用 `ou_xxx`，飞书会自动创建 bot 与用户的 p2p 会话（无需提前加好友）
-    > - **撤回消息**：`lark-cli im messages delete --as bot --params @file --yes`，文件内容为 `{"message_id":"om_xxx"}`（message_id 从发送响应的 `data.body.message_id` 获取）
+   > **Windows/PowerShell 发送**（已验证）：将 Card 2.0 JSON 和发送脚本分别写入文件，避免命令行引号问题：
+   > ```powershell
+   > # 1. 将 Card 2.0 JSON 写入 tmp-card.json
+   > # 2. 发送脚本 tmp-send.ps1：
+   > $cardJson = [System.IO.File]::ReadAllText("$PSScriptRoot\tmp-card.json", [System.Text.Encoding]::UTF8)
+   > $tokenBody = @{ app_id = "<bot_app_id>"; app_secret = "<bot_app_secret>" } | ConvertTo-Json -Compress
+   > $tokenResp = Invoke-RestMethod -Uri "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal" -Method Post -ContentType "application/json; charset=utf-8" -Body $tokenBody
+   > $token = $tokenResp.tenant_access_token
+   > $msgBody = @{ receive_id = "<notifyChatId>"; msg_type = "interactive"; content = $cardJson } | ConvertTo-Json -Depth 20 -Compress
+   > $headers = @{ Authorization = "Bearer $token" }
+   > $resp = Invoke-RestMethod -Uri "https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=chat_id" -Method Post -ContentType "application/json; charset=utf-8" -Headers $headers -Body $msgBody
+   > # resp.code == 0 表示成功，resp.data.message_id 为消息 ID
+   > # 3. 发送后清理临时文件
+   > ```
+   > 要点：
+   > - Card 2.0 **不支持** `action`（按钮）、`note` 等旧标签，改用 `markdown` 链接和 `<font>` 替代
+   > - `column` 的 `background_style: "grey"` 实现灰色背景块效果
+   > - 文件必须**无 BOM UTF-8** 写入（用 `[System.IO.File]::ReadAllText` / `WriteAllText` + `UTF8Encoding $false`）
+   > - **撤回消息**：POST 到 `/open-apis/im/v1/messages/{message_id}` （DELETE 方法），header 带 `Authorization: Bearer {token}`
 
-### 示例消息
+### 示例卡片
 
-interactive 卡片消息的 JSON 结构（标题用 `**粗体**`，不支持 `#` 标题语法）：
+Card 2.0 卡片 JSON 结构（灰色块分区，数字按功能着色）：
 
 ```json
 {
-  "elements": [
-    {
-      "tag": "markdown",
-      "content": "**文档更新摘要 · 2026-08-19 14:30**\n\n**象州客户端 CHANGELOG**\n- 新增「一键导出」功能\n- 修复低版本 iOS 表格滚动卡顿\n- 优化首屏加载速度\n\n**README**\n- 补充环境变量配置说明\n- 更新部署架构图\n\n文档链接：\n- [象州客户端 CHANGELOG](https://xxx.feishu.cn/wiki/xxxx)\n- [README](https://xxx.feishu.cn/wiki/yyyy)\n- [导航页 Index](https://xxx.feishu.cn/wiki/indexWikiToken)"
-    }
-  ]
+  "schema": "2.0",
+  "config": { "wide_screen_mode": true, "update_multi": true },
+  "header": {
+    "title": { "tag": "plain_text", "content": "文档更新摘要" },
+    "subtitle": { "tag": "plain_text", "content": "{YYYY-MM-DD HH:mm}" },
+    "template": "blue"
+  },
+  "body": {
+    "elements": [
+      {
+        "tag": "column_set",
+        "flex_mode": "none",
+        "horizontal_spacing": "8px",
+        "columns": [
+          {
+            "tag": "column",
+            "width": "weighted",
+            "weight": 1,
+            "background_style": "grey",
+            "padding": "8px",
+            "vertical_align": "center",
+            "vertical_spacing": "4px",
+            "elements": [
+              { "tag": "div", "text": { "tag": "plain_text", "content": "3", "text_size": "heading", "text_align": "center", "text_color": "blue" } },
+              { "tag": "div", "text": { "tag": "plain_text", "content": "更新文档", "text_size": "normal", "text_align": "center", "text_color": "grey" } }
+            ]
+          },
+          {
+            "tag": "column",
+            "width": "weighted",
+            "weight": 1,
+            "background_style": "grey",
+            "padding": "8px",
+            "vertical_align": "center",
+            "vertical_spacing": "4px",
+            "elements": [
+              { "tag": "div", "text": { "tag": "plain_text", "content": "3", "text_size": "heading", "text_align": "center", "text_color": "violet" } },
+              { "tag": "div", "text": { "tag": "plain_text", "content": "版本发布", "text_size": "normal", "text_align": "center", "text_color": "grey" } }
+            ]
+          },
+          {
+            "tag": "column",
+            "width": "weighted",
+            "weight": 1,
+            "background_style": "grey",
+            "padding": "8px",
+            "vertical_align": "center",
+            "vertical_spacing": "4px",
+            "elements": [
+              { "tag": "div", "text": { "tag": "plain_text", "content": "2", "text_size": "heading", "text_align": "center", "text_color": "green" } },
+              { "tag": "div", "text": { "tag": "plain_text", "content": "新增功能", "text_size": "normal", "text_align": "center", "text_color": "grey" } }
+            ]
+          },
+          {
+            "tag": "column",
+            "width": "weighted",
+            "weight": 1,
+            "background_style": "grey",
+            "padding": "8px",
+            "vertical_align": "center",
+            "vertical_spacing": "4px",
+            "elements": [
+              { "tag": "div", "text": { "tag": "plain_text", "content": "2", "text_size": "heading", "text_align": "center", "text_color": "orange" } },
+              { "tag": "div", "text": { "tag": "plain_text", "content": "Bug 修复", "text_size": "normal", "text_align": "center", "text_color": "grey" } }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "column_set",
+        "flex_mode": "none",
+        "columns": [
+          {
+            "tag": "column",
+            "width": "weighted",
+            "weight": 1,
+            "background_style": "grey",
+            "padding": "12px",
+            "elements": [
+              { "tag": "markdown", "content": "**文档更新概览**\n\n本次同步涵盖项目 A、项目 B 及项目 C 的 3 篇 CHANGELOG 文档，共 7 条变更记录，主要涉及功能优化与界面改版。" }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "column_set",
+        "flex_mode": "none",
+        "columns": [
+          {
+            "tag": "column",
+            "width": "weighted",
+            "weight": 1,
+            "background_style": "grey",
+            "padding": "12px",
+            "elements": [
+              { "tag": "markdown", "content": "**文档更新详情**\n\n**项目 A - CHANGELOG** `v1.2.0`\n- 新增某功能模块\n- 修复某场景下的异常行为\n\n**项目 B - CHANGELOG** `v0.0.9`\n- 优化某接口调用逻辑\n- 补充某配置说明\n\n**项目 C - CHANGELOG** `v0.1.6`\n- 更新页脚描述文案\n- 合作客户板块改版为 logo 墙布局" }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "column_set",
+        "flex_mode": "none",
+        "columns": [
+          {
+            "tag": "column",
+            "width": "weighted",
+            "weight": 1,
+            "background_style": "grey",
+            "padding": "12px",
+            "elements": [
+              { "tag": "markdown", "content": "**文档链接**\n- [项目 A - CHANGELOG](https://{feishuDomain}/wiki/{wikiTokenA})\n- [项目 B - CHANGELOG](https://{feishuDomain}/wiki/{wikiTokenB})\n- [项目 C - CHANGELOG](https://{feishuDomain}/wiki/{wikiTokenC})\n- [Index 导航页](https://{feishuDomain}/wiki/{indexWikiToken})" }
+            ]
+          }
+        ]
+      },
+      { "tag": "markdown", "content": "<font color='grey'>由 AI 工作助手自动同步并发送</font>" }
+    ]
+  }
 }
 ```
 
 > **默认行为**：发送前必须先将摘要内容展示给用户确认，用户同意后再发送。
+> **文档链接名称**：链接的显示文本必须与 `lark-wiki-sync.config.json` 中 `docs[].name` 完全一致，不得缩写或改写。
 
 ## 脚本工作原理
 
