@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.20](https://github.com/ivestszheng/agent-skills/compare/v0.0.19...v0.0.20) (2026-09-21)
+
+
+### Features
+
+* 新增 qianji 技能，读取钱迹本地库做个人财务分析 ([885ab5d](https://github.com/ivestszheng/agent-skills/commit/885ab5d1f6d7f0b87bde7351aba916191a228e1a))
+
 ### [0.0.19](https://github.com/ivestszheng/agent-skills/compare/v0.0.18...v0.0.19) (2026-09-21)
 
 
