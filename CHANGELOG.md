@@ -1,6 +1,8 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+All notable changes to this project will be documented in this file. See [Conventional Commits](https://www.conventionalcommits.org/) for commit guidelines.
+
+> 本文件为历史记录，已随 standard-version 一并停更（2026-09-21 起不再自动生成）。Skill 版本号见各 Skill 的 `SKILL.md`。
 
 ### [0.0.20](https://github.com/ivestszheng/agent-skills/compare/v0.0.19...v0.0.20) (2026-09-21)
 

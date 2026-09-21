@@ -1,4 +1,4 @@
-name: Release
+name: Skill Version
 
 on:
   push:
@@ -7,12 +7,14 @@ on:
 
 permissions:
   contents: write
-  issues: write
-  pull-requests: write
+
+concurrency:
+  group: skill-version-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  release:
-    name: Release
+  bump:
+    name: Auto bump skill versions
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,41 +28,30 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.2
-          run_install: false
-
-      - name: Get pnpm store directory
-        id: pnpm-config
-        shell: bash
-        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.pnpm-config.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
-      - name: Install dependencies
-        run: pnpm install
-
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Create Release
-        run: pnpm release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Validate skill frontmatter
+        run: node scripts/validate-skills.mjs
 
-      - name: Push changes and tags
+      - name: Bump skill versions
+        shell: bash
+        run: |
+          if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+            RANGE="HEAD~1..HEAD"
+          else
+            RANGE="${{ github.event.before }}..${{ github.sha }}"
+          fi
+          node scripts/bump-skill-versions.mjs --range "$RANGE"
+          if ! git diff --quiet -- skills; then
+            git add skills
+            git commit -m "chore: 自动更新 skill 版本号"
+          fi
+
+      - name: Push changes
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
-          tags: true

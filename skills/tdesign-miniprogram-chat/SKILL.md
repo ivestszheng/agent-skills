@@ -1,9 +1,16 @@
 ---
-name: "tdesign-miniprogram-chat"
+name: tdesign-miniprogram-chat
 description: >
   TDesign 微信小程序 AI 聊天组件库（tdesign-miniprogram-chat）完整开发指南。
   当用户在微信小程序中开发 AI 对话/聊天界面、使用 TDesign Chat 组件、
   接入 SSE 流式输出、或提及 t-chat / chat-list / chat-message / chat-sender / chat-actionbar / chat-markdown / chat-thinking / chat-loading / attachments / chat-content 时使用。
+slug: tdesign-miniprogram-chat
+displayName: TDesign 小程序 AI Chat
+summary: TDesign 微信小程序 AI 聊天组件库开发指南，含 SSE 流式输出与附件管理
+version: 0.1.0
+license: MIT
+tags: [TDesign, 微信小程序, AI对话, 流式输出, SSE]
+homepage: https://github.com/ivestszheng/agent-skills/tree/main/skills/tdesign-miniprogram-chat
 ---
 
 # TDesign 微信小程序 AI Chat 组件

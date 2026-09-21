@@ -1,26 +1,16 @@
 {
   "name": "agent-skills",
   "version": "0.0.20",
+  "private": true,
   "description": "Agent Skills and Rules",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "release": "standard-version",
-    "release:dry": "standard-version --dry-run",
-    "release:major": "standard-version --release-as major",
-    "release:minor": "standard-version --release-as minor",
-    "release:patch": "standard-version --release-as patch"
+    "skill:bump": "node scripts/bump-skill-versions.mjs",
+    "skill:bump:all": "node scripts/bump-skill-versions.mjs --all",
+    "skill:check": "node scripts/bump-skill-versions.mjs --check --range HEAD~1..HEAD",
+    "skill:validate": "node scripts/validate-skills.mjs",
+    "hooks:install": "git config core.hooksPath scripts/hooks"
   },
   "keywords": [],
-  "author": "",
   "license": "MIT",
-  "packageManager": "pnpm@10.33.2",
-  "devDependencies": {
-    "standard-version": "^9.5.0"
-  },
-  "standard-version": {
-    "scripts": {
-      "postbump": "echo \"Version bumped to $npm_package_version\""
-    }
-  }
+  "packageManager": "pnpm@10.33.2"
 }

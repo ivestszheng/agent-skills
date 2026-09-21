@@ -1,6 +1,5 @@
 # agent-skills
 
-[![npm version](https://img.shields.io/npm/v/agent-skills)](https://www.npmjs.com/package/agent-skills)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![GitHub last commit](https://img.shields.io/github/last-commit/ivestszheng/agent-skills)](https://github.com/ivestszheng/agent-skills)
 [![GitHub stars](https://img.shields.io/github/stars/ivestszheng/agent-skills?style=social)](https://github.com/ivestszheng/agent-skills)
@@ -24,9 +23,10 @@ agent-skills/
 │   ├── tdesign-miniprogram/        # TDesign 小程序基础组件
 │   └── tdesign-miniprogram-chat/   # TDesign 小程序 AI Chat 组件
 ├── .trae/rules/                    # Trae IDE 项目级规则（与 rules/ 同步）
+├── scripts/                        # 工具脚本（Skill 版本号自动更新）
 ├── AGENTS.md                       # 版本管理与提交规范
-├── CHANGELOG.md                    # 变更日志
-└── package.json                    # 项目配置（standard-version）
+├── CHANGELOG.md                    # 历史变更日志（已停止自动更新）
+└── package.json                    # 项目配置
 ```
 
 ## 安装与使用
@@ -66,8 +66,20 @@ skill-name/
 name: skill-name
 description: >
   技能描述与触发条件，当用户提及 xxx 时使用。
+slug: skill-name          # 发布到 SkillHub 的唯一标识（kebab-case）
+displayName: 技能展示名    # 发布到 SkillHub 的展示名称
+version: 0.1.0            # 该 Skill 的独立版本号
+license: MIT
 ---
 ```
+
+`slug` / `displayName` / `version` 供 SkillHub 等平台发布使用，`name` / `description` 供各 Agent 客户端识别，可以共存。
+
+### Skill 版本管理
+
+每个 Skill 独立版本，合并到 `main` 时由 CI 自动 bump，无需手改：CI 按本次推送范围找出改动到的 Skill，推导级别后提交 `chore: 自动更新 skill 版本号`，并随仓库发布一起推送。
+
+bump 级别按提交信息推导（`fix:` → patch，`feat:` → minor，`feat!:` → major；版本低于 `1.0.0` 时 major 降级为 minor）。本地可用 `pnpm skill:bump --dry-run` 预览、`pnpm skill:bump` 手动 bump 改动到的 Skill；发布前用 `pnpm skill:validate` 校验各 Skill 的 frontmatter 是否满足要求。详见 [AGENTS.md](AGENTS.md)。
 
 ## License
 

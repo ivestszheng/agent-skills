@@ -1,0 +1,23 @@
+#!/bin/sh
+# 提交前自动 bump 「本次改动到的 skill」的版本号，并把结果加回暂存区。
+#
+# 启用： git config core.hooksPath scripts/hooks
+# 跳过： git commit --no-verify
+
+root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+cd "$root" || exit 0
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "[skill-version] 未找到 node，跳过版本号更新"
+  exit 0
+fi
+
+git_dir=$(git rev-parse --absolute-git-dir 2>/dev/null)
+message=""
+if [ -n "$git_dir" ] && [ -f "$git_dir/COMMIT_EDITMSG" ]; then
+  message=$(cat "$git_dir/COMMIT_EDITMSG" 2>/dev/null)
+fi
+
+node "$root/scripts/bump-skill-versions.mjs" --staged --message "$message" || true
+git add -- skills >/dev/null 2>&1 || true
+exit 0

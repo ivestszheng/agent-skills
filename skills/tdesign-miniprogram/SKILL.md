@@ -1,9 +1,16 @@
 ---
-name: "tdesign-miniprogram"
+name: tdesign-miniprogram
 description: >
   TDesign 微信小程序基础组件库（tdesign-miniprogram）完整开发指南。
   当用户在微信小程序中开发界面、使用 TDesign 基础组件、配置项目依赖、
   或提及 button / icon / layout / navbar / tabs / input / cell / badge / avatar / form / picker / drawer / dialog / toast / loading 等基础组件时使用。
+slug: tdesign-miniprogram
+displayName: TDesign 小程序组件
+summary: TDesign 微信小程序基础组件库完整开发指南
+version: 0.1.0
+license: MIT
+tags: [TDesign, 微信小程序, 组件库, 小程序开发]
+homepage: https://github.com/ivestszheng/agent-skills/tree/main/skills/tdesign-miniprogram
 ---
 
 # TDesign 微信小程序基础组件

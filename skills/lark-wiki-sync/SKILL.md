@@ -4,6 +4,13 @@ description: >
   通过 lark-cli 将本地 Markdown 文档（CHANGELOG、README 等）批量同步到飞书知识库 wiki 文档。
   以 bot 身份写入，支持 monorepo 多文档场景。涉及 lark-wiki-sync.config.json、
   sync:wiki、飞书文档同步、wiki token 时使用。
+slug: lark-wiki-sync
+displayName: 飞书文档同步
+summary: 通过 lark-cli 把本地 Markdown 文档批量同步到飞书知识库 wiki 文档
+version: 0.1.0
+license: MIT
+tags: [飞书, 知识库, 文档同步, wiki, lark]
+homepage: https://github.com/ivestszheng/agent-skills/tree/main/skills/lark-wiki-sync
 ---
 
 # 文档飞书同步

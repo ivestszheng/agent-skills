@@ -4,6 +4,13 @@ description: >
   读取本机「钱迹」App 的本地 SQLite 数据库（qianjiapp.db），做个人财务分析并生成
   自包含 HTML 报告。当用户提到钱迹、记账数据、我的财务状况、收支分析、这个月花了多少、
   净资产、月度/年度账单复盘、资产配置、预算执行时使用。
+slug: qianji
+displayName: 钱迹财务分析
+summary: 读取本机钱迹 App 的本地数据库，做个人财务分析并生成自包含 HTML 报告
+version: 0.1.0
+license: MIT
+tags: [记账, 个人财务, 收支分析, 资产配置, sqlite]
+homepage: https://github.com/ivestszheng/agent-skills/tree/main/skills/qianji
 ---
 
 # 钱迹财务分析
