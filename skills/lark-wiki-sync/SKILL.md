@@ -213,7 +213,7 @@ lark-cli im +chat-list --as bot
    - **链接块**（`column_set` 单列）：标题 `**文档链接**`，列出所有已更新文档的飞书链接 + Index 导航页链接
    - 文档链接的显示文本**必须使用 `lark-wiki-sync.config.json` 中 `docs[].name` 的原值**，不得缩写或改写
    - 链接 URL 格式：`https://{feishuDomain}/wiki/{wikiToken}`；Index 页：`https://{feishuDomain}/wiki/{indexWikiToken}`
-   - 末尾加灰色脚注：`<font color='grey'>由 AI 工作助手自动同步并发送</font>`
+   - 末尾加灰色脚注：`<font color='grey'>由 AI 同步并发送</font>`
 6. **展示摘要待用户确认**：将组装好的摘要内容展示给用户，等待用户确认后再发送
 7. **发送到所有配置群**：用户确认后，对 `notifyChatIds` 中每个 chat_id 各发一条。
 
