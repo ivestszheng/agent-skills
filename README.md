@@ -20,6 +20,7 @@ agent-skills/
 │   └── turborepo_rules.md          # Turborepo monorepo 规范
 ├── skills/                         # 智能体技能
 │   ├── lark-wiki-sync/             # 飞书知识库文档同步
+│   ├── qianji/                     # 钱迹本地记账数据分析
 │   ├── tdesign-miniprogram/        # TDesign 小程序基础组件
 │   └── tdesign-miniprogram-chat/   # TDesign 小程序 AI Chat 组件
 ├── .trae/rules/                    # Trae IDE 项目级规则（与 rules/ 同步）
@@ -90,5 +91,6 @@ description: >
 | Skill | 目录 | 说明 |
 |-------|------|------|
 | **lark-wiki-sync** | [skills/lark-wiki-sync](skills/lark-wiki-sync/SKILL.md) | 通过 lark-cli 将本地 Markdown 文档批量同步到飞书知识库 wiki，支持 monorepo 多文档场景 |
+| **qianji** | [skills/qianji](skills/qianji/SKILL.md) | 读取本机钱迹（Windows 桌面版）SQLite 库做个人财务分析，输出 Markdown 摘要与自包含 HTML 报告，含资产配置、收支结构、预算执行 |
 | **tdesign-miniprogram** | [skills/tdesign-miniprogram](skills/tdesign-miniprogram/SKILL.md) | TDesign 微信小程序基础组件库开发指南，涵盖基础布局、导航、输入、数据展示等完整组件体系 |
 | **tdesign-miniprogram-chat** | [skills/tdesign-miniprogram-chat](skills/tdesign-miniprogram-chat/SKILL.md) | TDesign 微信小程序 AI 聊天组件库开发指南，含消息列表、Markdown 渲染、SSE 流式输出、附件管理等 |
