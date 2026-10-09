@@ -1,0 +1,27 @@
+{
+  "cookies": {
+    "u_ukey": "<u_ukey>",
+    "u_uver": "1.0.0",
+    "u_dpass": "<u_dpass>",
+    "u_did": "<u_did>",
+    "u_ttype": "WEB",
+    "user_status": "0",
+    "ttype": "WEB",
+    "user": "<user>",
+    "userid": "<userid>",
+    "u_name": "<u_name>",
+    "escapename": "<escapename>",
+    "ticket": "<ticket>",
+    "utk": "<utk>",
+    "sess_tk": "<sess_tk JWT，约 7 天过期>",
+    "cuc": "<cuc>",
+    "shoudNotCookieRefresh": "1",
+    "v": "<v>"
+  },
+  "params": {
+    "userid": "<userid>",
+    "fund_key": "<股票账户键，见抓包请求体>",
+    "custid": "<爱基金 cust_id，见抓包请求体>"
+  },
+  "note": "复制为 session_cookies.json 后，按 SKILL.md「首次配置」从 DevTools Copy as PowerShell 提取真实值填入。本文件是真实登录态，严禁提交仓库或对外分享。"
+}

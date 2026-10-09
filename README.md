@@ -21,7 +21,8 @@ agent-skills/
 │   ├── lark-wiki-sync/             # 飞书知识库文档同步
 │   ├── qianji/                     # 钱迹本地记账数据分析
 │   ├── tdesign-miniprogram/        # TDesign 小程序基础组件
-│   └── tdesign-miniprogram-chat/   # TDesign 小程序 AI Chat 组件
+│   ├── tdesign-miniprogram-chat/   # TDesign 小程序 AI Chat 组件
+│   └── tzzb/                       # 同花顺投资账本 HTTP API 抓取
 ├── .trae/rules/                    # Trae IDE 项目级规则（与 rules/ 同步）
 ├── scripts/                        # 工具脚本（Skill 版本号自动更新）
 ├── AGENTS.md                       # 版本管理与提交规范
